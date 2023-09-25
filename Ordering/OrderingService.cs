@@ -20,10 +20,10 @@ namespace OleterLock
         /// <param name="no"></param>
         /// <param name="doWork"></param>
         /// <returns></returns>
-        public static async Task<DoWorkOnHigherResult> DoWorkOnHigher(BlobClient blobClient, BlobLease blobLease, string metadataKey, long no, Action doWork)
+        public static DoWorkOnHigherResult DoWorkOnHigher(BlobClient blobClient, BlobLease blobLease, string metadataKey, long no, Action doWork)
         {
             // Get the blob's properties and metadata.
-            BlobProperties properties = await blobClient.GetPropertiesAsync(new BlobRequestConditions() { LeaseId = blobLease.LeaseId });
+            BlobProperties properties = blobClient.GetProperties(new BlobRequestConditions() { LeaseId = blobLease.LeaseId });
 
             var metaData = properties.Metadata ?? new Dictionary<string, string>();
 
@@ -36,7 +36,7 @@ namespace OleterLock
 
             // Update the blob's metadata.
             metaData[metadataKey] = no.ToString();
-            await blobClient.SetMetadataAsync(metaData, new BlobRequestConditions() { LeaseId = blobLease.LeaseId });
+            blobClient.SetMetadata(metaData, new BlobRequestConditions() { LeaseId = blobLease.LeaseId });
 
             return DoWorkOnHigherResult.EventHandled;
 

@@ -117,7 +117,7 @@ namespace OleterLock.Test
                         {
                             TestContext.WriteLine($"{no} is handled");
                             handled.Enqueue(no);
-                        }).Result;
+                        });
                     });
                 }
                 return lockReceived;
@@ -133,9 +133,9 @@ namespace OleterLock.Test
             OrderingService.DoWorkOnHigherResult handleResult = OrderingService.DoWorkOnHigherResult.EventOutOfOrder;
             var eventIsHandled = false;
 
-            var lockReceived = await BlobLock.TryLockAndDoWork(bc, TimeSpan.FromSeconds(59), async (client, lease) =>
+            var lockReceived = await BlobLock.TryLockAndDoWork(bc, TimeSpan.FromSeconds(20), async (client, lease) =>
             {
-                handleResult = await OrderingService.DoWorkOnHigher(client, lease, "testevent1", 1, () =>
+                handleResult = OrderingService.DoWorkOnHigher(client, lease, "testevent1", 1, () =>
                 {
                     eventIsHandled = true;
                 });
