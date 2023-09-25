@@ -44,7 +44,7 @@ namespace OleterLock.Test
 
             var callbackReached = false;
 
-            var lockReceivedAndWorkRun = BlobLock.TryLockAndDoWork(client, TimeSpan.FromSeconds(10), (client, lease) =>
+            var lockReceivedAndWorkRun = BlobLock.TryLockAndDoWork(client, TimeSpan.FromSeconds(15), (client, lease) =>
             {
                 callbackReached = true;
             }).Result;
@@ -53,7 +53,6 @@ namespace OleterLock.Test
             Assert.IsTrue(lockReceivedAndWorkRun);
         }
 
-        [Ignore]
         [TestMethod]
         public void Callback_is_NOT_run_when_lease_is_NOT_acquired()
         {
@@ -63,7 +62,7 @@ namespace OleterLock.Test
             var blobLease = leaseClient.Acquire(TimeSpan.FromSeconds(15));
             var callbackReached = false;
 
-            var lockReceivedAndWorkRun = BlobLock.TryLockAndDoWork(client, TimeSpan.FromSeconds(10), (client, lease) =>
+            var lockReceivedAndWorkRun = BlobLock.TryLockAndDoWork(client, TimeSpan.FromSeconds(15), (client, lease) =>
             {
                 callbackReached = true;
             }).Result;
