@@ -29,7 +29,7 @@ namespace OleterLock
                     await blobLeaseClient.ReleaseAsync();
                 }
             }
-            catch (RequestFailedException)
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.LeaseAlreadyPresent)
             {
                 return false;
             }
