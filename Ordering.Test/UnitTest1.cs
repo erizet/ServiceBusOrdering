@@ -110,13 +110,14 @@ namespace OleterLock.Test
                 var lockReceived = false;
                 while (!lockReceived)
                 {
-                    lockReceived = await BlobLock.TryLockAndDoWork(bc, TimeSpan.FromSeconds(59), (client, lease) =>
+                    lockReceived = await BlobLock.TryLockAndDoWork(bc, TimeSpan.FromSeconds(59), async (client, lease) =>
                     {
                         //Thread.Sleep(10);
-                        var handleResult = OrderingService.DoWorkOnHigher(client, lease, "testevent1", no, () =>
+                        var handleResult = await OrderingService.DoWorkOnHigher(client, lease, "testevent1", no, () =>
                         {
                             TestContext.WriteLine($"{no} is handled");
                             handled.Enqueue(no);
+                            return Task.CompletedTask;
                         });
                     });
                 }
@@ -135,9 +136,10 @@ namespace OleterLock.Test
 
             var lockReceived = await BlobLock.TryLockAndDoWork(bc, TimeSpan.FromSeconds(20), async (client, lease) =>
             {
-                handleResult = OrderingService.DoWorkOnHigher(client, lease, "testevent1", 1, () =>
+                handleResult = await OrderingService.DoWorkOnHigher(client, lease, "testevent1", 1, () =>
                 {
                     eventIsHandled = true;
+                    return Task.CompletedTask;
                 });
             });
 

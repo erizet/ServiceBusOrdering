@@ -37,24 +37,25 @@ namespace OleterLock.Test
         }
 
         [TestMethod]
-        public void Callback_is_run_when_lease_is_acquired()
+        public async Task Callback_is_run_when_lease_is_acquired()
         {
             var blobName = "test2";
             var client = GetBlobClient(blobName);
 
             var callbackReached = false;
 
-            var lockReceivedAndWorkRun = BlobLock.TryLockAndDoWork(client, TimeSpan.FromSeconds(15), (client, lease) =>
+            var lockReceivedAndWorkRun = await BlobLock.TryLockAndDoWork(client, TimeSpan.FromSeconds(15), (client, lease) =>
             {
                 callbackReached = true;
-            }).Result;
+                return Task.CompletedTask;
+            });
 
             Assert.IsTrue(callbackReached);  
             Assert.IsTrue(lockReceivedAndWorkRun);
         }
 
         [TestMethod]
-        public void Callback_is_NOT_run_when_lease_is_NOT_acquired()
+        public async Task Callback_is_NOT_run_when_lease_is_NOT_acquired()
         {
             var blobName = "test2";
             var client = GetBlobClient(blobName);
@@ -62,10 +63,11 @@ namespace OleterLock.Test
             var blobLease = leaseClient.Acquire(TimeSpan.FromSeconds(15));
             var callbackReached = false;
 
-            var lockReceivedAndWorkRun = BlobLock.TryLockAndDoWork(client, TimeSpan.FromSeconds(15), (client, lease) =>
+            var lockReceivedAndWorkRun = await BlobLock.TryLockAndDoWork(client, TimeSpan.FromSeconds(15), (client, lease) =>
             {
                 callbackReached = true;
-            }).Result;
+                return Task.CompletedTask;
+            });
 
             leaseClient.Release();
 
@@ -85,12 +87,12 @@ namespace OleterLock.Test
 
             var callbackReached = false;
 
-            Assert.ThrowsException<AggregateException>(() =>
+            await Assert.ThrowsExceptionAsync<Exception>(async () =>
             {
-                var lockReceivedAndWorkRun = BlobLock.TryLockAndDoWork(bc, TimeSpan.FromSeconds(10), (client, lease) =>
+                var lockReceivedAndWorkRun = await BlobLock.TryLockAndDoWork(bc, TimeSpan.FromSeconds(10), (client, lease) =>
                 {
                     throw new Exception();
-                }).Result;
+                });
             });
 
             Assert.IsFalse(callbackReached);

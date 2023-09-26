@@ -25,17 +25,18 @@ namespace OleterLock.Test
             var metadata = new Dictionary<string, string>();
             var props = BlobsModelFactory.BlobProperties(metadata: metadata);
             var bc = Substitute.For<BlobClient>();
-            bc.GetProperties(Arg.Any<BlobRequestConditions>()).Returns(Response.FromValue<BlobProperties>(props, default!));
+            bc.GetPropertiesAsync(Arg.Any<BlobRequestConditions>()).Returns(Response.FromValue<BlobProperties>(props, default!));
 
-            var handleResult = OrderingService.DoWorkOnHigher(bc, lease, key, no, () =>
+            var handleResult = await OrderingService.DoWorkOnHigher(bc, lease, key, no, () =>
             {
                 eventIsHandled = true;
+                return Task.CompletedTask;
             });
 
             Assert.AreEqual(OrderingService.DoWorkOnHigherResult.EventHandled, handleResult);
             Assert.IsTrue(eventIsHandled);
 
-            bc.Received().SetMetadata(Arg.Is<IDictionary<string, string>>(x => x[key] == no.ToString()), Arg.Any<BlobRequestConditions>());
+            await bc.Received().SetMetadataAsync(Arg.Is<IDictionary<string, string>>(x => x[key] == no.ToString()), Arg.Any<BlobRequestConditions>());
         }
 
         [TestMethod]
@@ -49,17 +50,18 @@ namespace OleterLock.Test
             metadata[key] = (no - 1).ToString();
             var props = BlobsModelFactory.BlobProperties(metadata: metadata);
             var bc = Substitute.For<BlobClient>();
-            bc.GetProperties(Arg.Any<BlobRequestConditions>()).Returns(Response.FromValue<BlobProperties>(props, default!));
+            bc.GetPropertiesAsync(Arg.Any<BlobRequestConditions>()).Returns(Response.FromValue<BlobProperties>(props, default!));
 
-            var handleResult = OrderingService.DoWorkOnHigher(bc, lease, key, no, () =>
+            var handleResult = await OrderingService.DoWorkOnHigher(bc, lease, key, no, () =>
             {
                 eventIsHandled = true;
+                return Task.CompletedTask;
             });
 
             Assert.AreEqual(OrderingService.DoWorkOnHigherResult.EventHandled, handleResult);
             Assert.IsTrue(eventIsHandled);
 
-            bc.Received().SetMetadata(Arg.Is<IDictionary<string, string>>(x => x[key] == no.ToString()), Arg.Any<BlobRequestConditions>());
+            await bc.Received().SetMetadataAsync(Arg.Is<IDictionary<string, string>>(x => x[key] == no.ToString()), Arg.Any<BlobRequestConditions>());
         }
 
         [TestMethod]
@@ -73,11 +75,12 @@ namespace OleterLock.Test
             metadata[key] = (no + 1).ToString();
             var props = BlobsModelFactory.BlobProperties(metadata: metadata);
             var bc = Substitute.For<BlobClient>();
-            bc.GetProperties(Arg.Any<BlobRequestConditions>()).Returns(Response.FromValue<BlobProperties>(props, default!));
+            bc.GetPropertiesAsync(Arg.Any<BlobRequestConditions>()).Returns(Response.FromValue<BlobProperties>(props, default!));
 
-            var handleResult = OrderingService.DoWorkOnHigher(bc, lease, key, no, () =>
+            var handleResult = await OrderingService.DoWorkOnHigher(bc, lease, key, no, () =>
             {
                 eventIsHandled = true;
+                return Task.CompletedTask;
             });
 
             Assert.AreEqual(OrderingService.DoWorkOnHigherResult.EventOutOfOrder, handleResult);
@@ -88,7 +91,7 @@ namespace OleterLock.Test
 
         [TestMethod]
         [ExpectedException(typeof(RequestFailedException))]
-        public void DoWork_throws_if_metadata_dont_can_be_updated()
+        public async Task DoWork_throws_if_metadata_dont_can_be_updated()
         {
             var key = "testevent1";
             var no = 1;
@@ -96,11 +99,12 @@ namespace OleterLock.Test
             var metadata = new Dictionary<string, string>();
             var props = BlobsModelFactory.BlobProperties(metadata: metadata);
             var bc = Substitute.For<BlobClient>();
-            bc.GetProperties(Arg.Any<BlobRequestConditions>()).Returns(Response.FromValue<BlobProperties>(props, default!));
-            bc.SetMetadata(Arg.Any<IDictionary<string, string>>(), Arg.Any<BlobRequestConditions>()).Throws(new RequestFailedException("test"));
+            bc.GetPropertiesAsync(Arg.Any<BlobRequestConditions>()).Returns(Response.FromValue<BlobProperties>(props, default!));
+            bc.SetMetadataAsync(Arg.Any<IDictionary<string, string>>(), Arg.Any<BlobRequestConditions>()).Throws(new RequestFailedException("test"));
 
-            var handleResult = OrderingService.DoWorkOnHigher(bc, lease, key, no, () =>
+            var handleResult = await OrderingService.DoWorkOnHigher(bc, lease, key, no, () =>
             {
+                return Task.CompletedTask;
             });
         }
 

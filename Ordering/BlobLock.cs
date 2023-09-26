@@ -12,7 +12,7 @@ namespace OleterLock
 {
     public static class BlobLock
     {
-        public static async Task<bool> TryLockAndDoWork(BlobClient blobClient, TimeSpan lockTime, Action<BlobClient, BlobLease> doWorkWhenLocked)
+        public static async Task<bool> TryLockAndDoWork(BlobClient blobClient, TimeSpan lockTime, Func<BlobClient, BlobLease, Task> doWorkWhenLocked)
         {
             BlobLeaseClient blobLeaseClient = blobClient.GetBlobLeaseClient();
             try
@@ -22,7 +22,7 @@ namespace OleterLock
 
                 try
                 {
-                    doWorkWhenLocked(blobClient, blobLease);
+                    await doWorkWhenLocked(blobClient, blobLease);
                 }
                 finally
                 {
